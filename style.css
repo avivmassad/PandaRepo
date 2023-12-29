@@ -1,0 +1,15 @@
+@font-face { font-family: minecraft; src: url('./Assets/Minecraft.ttf'); } 
+.stroketext{
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1px;
+}
+.endscreen{
+    background-color: #000000dd;
+    height: 550px; width: 900px;
+    position:absolute;
+    left:350px;
+    top:150px;
+    border-width: 50px;
+    border-style: solid;
+    border-image: url(./sprites/bamboo/bamboo_border.png) 7 7 7 7 round;
+}
