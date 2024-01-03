@@ -1,8 +1,8 @@
 "use strict";
 var gameInterval
 var mult = 2
-var secondsPassed;
-var oldTimeStamp;
+var secondsPassed = 0;
+var oldTimeStamp = 0;
 var fps;
 var timeSinceLastFrame = 0
 var newTime = new Date()
@@ -170,7 +170,6 @@ var bossDragonImages = [bossDragon1Img, bossDragon2Img, bossDragon3Img]
 var bossDragonUpImages = [bossDragonUp1Img, bossDragonUp2Img, bossDragonUp3Img]
 var bossDragonDownImages = [bossDragonDown1Img, bossDragonDown2Img, bossDragonDown3Img]
 var count = 0
-var countForCount = 0
 var walkingDown = false
 var walkingUp = false
 var walkingRight = false
@@ -198,20 +197,21 @@ var fireBallHeight = 42
 var score = 0
 var tileOffset = 0
 var timeToShoot = 15 / mult
-var backgroundSpeed = 0.2 * mult
-var tileSpeed = -1 * mult
-var pandaIdleSpeed = -0.5 * mult
-var pandaXSpeed = 4 * mult
-var pandaYSpeed = 4 * mult
-var bambooTreeSpeed = -1 * mult
-var dragonSpeed = -2 * mult
-var blueDragonSpeed = -2 * mult
-var fireBallSpeed = 5 * mult
-var bambooSpeed = 10 * mult
+var backgroundSpeed = 24
+var tileSpeed = -120
+var pandaIdleSpeed = -60
+var pandaXSpeed = 480
+var pandaYSpeed = 480
+var bambooTreeSpeed = -120
+var dragonSpeed = -240
+var blueDragonSpeed = -240
+var fireBallSpeed = 600
+var bambooSpeed = 1200
 var bamboosFromTree = 4
 var scoreFromTree = 10
 var timeToCut = 200 / mult
-var cuttingSpeed = (Math.PI / 50) * mult
+var cuttingSpeed = Math.PI * 2
+var dis
 var cuttingDistance = 80
 var leftArrow = false
 var upArrow = false
@@ -231,7 +231,7 @@ var inBossBattle = false
 var bossKilled = false
 var redDragonHealth = 3
 var blueDragonHealth = 4
-var bossDragonHealth = 40
+var bossDragonHealth = 4
 var bossDragonSizeRatio = 4.5
 var bossDragonWidth = dragonWidth * bossDragonSizeRatio
 var bossDragonHeight = dragonHeight * bossDragonSizeRatio
@@ -297,7 +297,7 @@ function startGame() {
                 
             }
             else if (i < tilesArrayHeight - 3){
-                ctx.drawImage(grassArray[i][j], j * tileSize, i * tileSize, tileSize, tileSize)
+                ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize), i * tileSize, tileSize, tileSize)
             }
         }
     }
@@ -365,7 +365,7 @@ document.onkeydown =
                 break;
             case 69://e
                 if (pando.state == "walking")
-                    var dis = getClosestBamboo()
+                    dis = getClosestBamboo()
                 if (dis <= cuttingDistance && closestBamboo.state){
                     pando.state = "cutting"
                 }
@@ -439,44 +439,45 @@ function runLoop(timeStamp) {
 
     // Move forward in time with a maximum amount
     secondsPassed = Math.min(secondsPassed, 0.1);
+    //console.log(secondsPassed)
 
     // Calculate fps
     fps = Math.round(1 / secondsPassed);
 
     // Draw number to the screen
-    ctx.fillStyle = 'white';
+    /*ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, 200, 100);
     ctx.font = '25px Arial';
     ctx.fillStyle = 'black';
-    ctx.fillText("FPS: " + fps, 10, 30);
+    ctx.fillText("FPS: " + fps, 10, 30);*/
 
     if (bossKilled){
         world = 'snow'
         currentGroundTile = snow
     }
-    if (count > 7000 && !inBossBattle && !bossKilled){
-        bossObject = new BossDragon(-bossDragonWidth, 100, 3, bossDragonHealth, bossDragonImages, bossDragonWidth,
+    if (Math.floor(count) > 7000 && !inBossBattle && !bossKilled){
+        bossObject = new BossDragon(-bossDragonWidth, 100, 180, bossDragonHealth, bossDragonImages, bossDragonWidth,
             bossDragonHeight, -bossDragonWidth, 100, bossDragonWidth, bossDragonHeight)
         objects.push(bossObject)
         inBossBattle = true
     }
-    count++
-    tileOffset += tileSpeed
+    count += 60 * secondsPassed
+    tileOffset += tileSpeed * secondsPassed
     //tileOffset %= tileSize
     //console.log(tileOffset)
     if (pando.state == "cutting"){
-        bambooCuttingCount+=cuttingSpeed
+        bambooCuttingCount+=cuttingSpeed * secondsPassed
     }
-    backgroundOffset-=backgroundSpeed
+    backgroundOffset-=backgroundSpeed * secondsPassed
     backgroundOffset %= canvas.width
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (dayTime){
-        ctx.drawImage(backgroundImg,backgroundOffset,0);
-        ctx.drawImage(backgroundImg, backgroundOffset + canvas.width, 0);
+        ctx.drawImage(backgroundImg, Math.floor(backgroundOffset),0);
+        ctx.drawImage(backgroundImg, Math.floor(backgroundOffset + canvas.width), 0);
     }
     else{
-        ctx.drawImage(nightBackgroundImg,backgroundOffset,0);
-        ctx.drawImage(nightBackgroundImg, backgroundOffset + canvas.width, 0);
+        ctx.drawImage(nightBackgroundImg,Math.floor(backgroundOffset),0);
+        ctx.drawImage(nightBackgroundImg, Math.floor(backgroundOffset + canvas.width), 0);
     }
     drawAmmo()
 
@@ -499,24 +500,24 @@ function runLoop(timeStamp) {
         pando.xSpeed -= pandaXSpeed
 
     //shooting bamboo
-    if (pando.bamboos > 0 && count - countAtLastShot >= timeToShoot){
+    if (pando.bamboos > 0 && Math.floor(count) - Math.floor(countAtLastShot) >= timeToShoot){
         if (rightArrow && !leftArrow){
-            countAtLastShot = count
+            countAtLastShot = Math.floor(count)
             pando.bamboos--
             objects.push(new Bamboo(pando.x, pando.y + 40, bambooSpeed, 0, bambooImg, bambooWidth, bambooHeight, pando.x, pando.y + 40, bambooWidth, bambooHeight))
         }
         if (leftArrow && !rightArrow){
-            countAtLastShot = count
+            countAtLastShot = Math.floor(count)
             pando.bamboos--
             objects.push(new Bamboo(pando.x, pando.y + 40, -bambooSpeed, 0, bambooImg, bambooWidth, bambooHeight, pando.x, pando.y + 40, bambooWidth, bambooHeight))
         }
         if (upArrow && !downArrow && !leftArrow && !rightArrow){
-            countAtLastShot = count
+            countAtLastShot = Math.floor(count)
             pando.bamboos--
             objects.push(new Bamboo(pando.x + pando.width / 2, pando.y, 0, -bambooSpeed, rotatedBambooImg, bambooHeight, bambooWidth, pando.x + pando.width / 2, pando.y, bambooHeight, bambooWidth))
         }
         if (!upArrow && downArrow && !leftArrow && !rightArrow){
-            countAtLastShot = count
+            countAtLastShot = Math.floor(count)
             pando.bamboos--
             objects.push(new Bamboo(pando.x + pando.width / 2, pando.y + pando.height / 2, 0, bambooSpeed, rotatedBambooImg, bambooHeight, bambooWidth, pando.x + pando.width / 2, pando.y + pando.height / 2, bambooHeight, bambooWidth))
         }
@@ -614,15 +615,15 @@ function runLoop(timeStamp) {
         for(var j = 0; j < tilesArrayWidth + 1; j++){
             if (groundObjects.includes(grassArray[i][j])){
                 if ([grass, mushroom1, mushroom2, rock1, rock2].includes(grassArray[i][j]))
-                    ctx.drawImage(green, j * tileSize + tileOffset % tileSize, i * tileSize, tileSize, tileSize)
+                    ctx.drawImage(green, Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize)
                 if ([snowMushroom1, snowMushroom2, snowRock1, snowRock2].includes(grassArray[i][j]))
-                    ctx.drawImage(snow, j * tileSize + tileOffset % tileSize, i * tileSize, tileSize, tileSize)
+                    ctx.drawImage(snow, Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize)
             }
             if ((j * tileSize + tileOffset % tileSize >= pando.x - pandaWidth && j * tileSize + tileOffset % tileSize <= pando.x + pandaWidth) && i == Math.floor((pando.y + pandaHeight) / tileSize) && groundObjects.includes(grassArray[Math.floor((pando.y + pandaHeight) / tileSize)][j])){
                 later.push([i,j])
             }
             else{
-                ctx.drawImage(grassArray[i][j], j * tileSize + tileOffset % tileSize, i * tileSize, tileSize, tileSize)
+                ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize)
             }
         }
     }
@@ -644,9 +645,9 @@ function runLoop(timeStamp) {
         ctx.stroke()*/
     
     }
-    later.forEach(([i, j])=> ctx.drawImage(grassArray[i][j], j * tileSize + tileOffset % tileSize, i * tileSize, tileSize, tileSize))
+    later.forEach(([i, j])=> ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize))
 
-    if (count % 30 == 0){
+    if (Math.floor(count) % 30 == 0){
         score++
     }
     if (score > highscore){
@@ -657,6 +658,7 @@ function runLoop(timeStamp) {
     //ctx.fillText("SCORE: " + score, 60, 150);
     drawStroked(ctx, "SCORE: " + score, 60, 120, '34pt minecraft')
     drawStroked(ctx, "HIGHSCORE: " + highscore, 60, 170, '34pt minecraft')
+    drawStroked(ctx, "FPS: " + Math.round(1 / secondsPassed), 60, 220, '34pt minecraft')
     if (pando.state == "cutting")
         drawBambooProgress(ctx)
 
@@ -688,7 +690,8 @@ function runLoop(timeStamp) {
         }*/
     }
     tileOffset %= tileSize
-    window.requestAnimationFrame(runLoop);
+    if(pando.state != "dead")
+        window.requestAnimationFrame(runLoop);
 }
 
 function drawStroked(context, text, x, y, font) {
@@ -912,18 +915,20 @@ class WorldObject{
         this._img = firstImg
     }
     move(){
-        this.x += this.xSpeed
+        this._x += this._xSpeed * secondsPassed
     }
     drawSelf(){
-        ctx.drawImage(this._img, this._x, this._y, this._width, this._height)
+        ctx.drawImage(this._img, Math.floor(this._x), this._y, this._width, this._height)
     }
     loopRoutine(i){
-        if(this._x > canvas.width || this._x < -this._width){
+        if(this._x > canvas.width || this._x < -this._width || this._y < -this.height || this._y > canvas.height){
             objects.splice(i, 1)
+            console.log("aids! i = " + i)
             return 1
         }
         this.move()
         this.drawSelf()
+        return 0
     }
     get x() {
         return this._x
@@ -973,10 +978,10 @@ class HitboxObject extends WorldObject{
     }
     move(){
         super.move()
-        this.hitboxX += this.xSpeed
+        this._hitboxX += this._xSpeed * secondsPassed
     }
     loopRoutine(i){
-        super.loopRoutine(i)
+        return super.loopRoutine(i)
     }
     get hitboxX() {
         return this._hitboxX
@@ -1021,7 +1026,7 @@ class Dragon extends HitboxObject{
     }
     move(){
         super.move()
-        this._hitbox1X += this._xSpeed
+        this._hitbox1X += this._xSpeed * secondsPassed
     }
     shootFireBall(){
         var source = {x: this.x, y: this.y + this.height / 2}
@@ -1045,7 +1050,7 @@ class Dragon extends HitboxObject{
         //ctx.drawImage(bossDragonHeadImg, canvas.width / 2 - 800 / 2 - (35 * 1.5) / 2, canvas.height - 80 - (45 * 1.5) / 5, 35 * 1.5, 45 * 1.5)
     }
     drawSelf(){
-        ctx.drawImage(this._img[Math.floor(count / ((27 - 1.5 * Math.abs(this._xSpeed)) / mult)) % 3], this._x, this._y, this._width, this._height)
+        ctx.drawImage(this._img[Math.floor(Math.floor(count) / ((27 - Math.abs(this._xSpeed) / 60) / mult)) % 3], Math.floor(this._x), this._y, this._width, this._height)
         this.drawHealthBar()
     }
     loopRoutine(i){
@@ -1139,9 +1144,9 @@ class BossDragon extends Dragon{
     }
     move(){
         super.move()
-        this._y += this._ySpeed
-        this._hitboxY += this._ySpeed
-        this._hitbox1Y += this._ySpeed
+        this._y += this._ySpeed * secondsPassed
+        this._hitboxY += this._ySpeed * secondsPassed
+        this._hitbox1Y += this._ySpeed * secondsPassed
     }
     drawHealthBar(){
         if (this._fightStarted){
@@ -1171,19 +1176,19 @@ class BossDragon extends Dragon{
     }
     summonHenchmen(){
         if (this._henchmen.indexOf(henchman) == -1){
-            henchman = new HenchmanRedDragon(-dragonWidth, 600, 3, 3, leftRedDragonImages, dragonWidth, dragonHeight, -dragonWidth, 100, dragonWidth, dragonHeight, 50)
+            henchman = new HenchmanRedDragon(-dragonWidth, 600, 180, 3, leftRedDragonImages, dragonWidth, dragonHeight, -dragonWidth, 100, dragonWidth, dragonHeight, 50)
             this._henchmen.push(henchman)
             objects.push(henchman)
             this._timeSinceSummon = 0
         }
         if (this._henchmen.indexOf(henchman1) == -1){
-            henchman1 = new HenchmanRedDragon(-dragonWidth, 200, 3, 3, leftRedDragonImages, dragonWidth, dragonHeight, -dragonWidth, 100, dragonWidth, dragonHeight, 150)
+            henchman1 = new HenchmanRedDragon(-dragonWidth, 200, 180, 3, leftRedDragonImages, dragonWidth, dragonHeight, -dragonWidth, 100, dragonWidth, dragonHeight, 150)
             this._henchmen.push(henchman1)
             objects.push(henchman1)
             this._timeSinceSummon = 0
         }
         if (this._henchmen.indexOf(henchman2) == -1){
-            henchman2 = new HenchmanRedDragon(-dragonWidth, 500, 3, 3, leftRedDragonImages, dragonWidth, dragonHeight, -dragonWidth, 100, dragonWidth, dragonHeight, 500)
+            henchman2 = new HenchmanRedDragon(-dragonWidth, 500, 180, 3, leftRedDragonImages, dragonWidth, dragonHeight, -dragonWidth, 100, dragonWidth, dragonHeight, 500)
             this._henchmen.push(henchman2)
             objects.push(henchman2)
             this._timeSinceSummon = 0
@@ -1191,7 +1196,7 @@ class BossDragon extends Dragon{
     }
     chargeAttack(){
         if (this._chragePhase == 1){
-            this._xSpeed = 9
+            this._xSpeed = 9 * 60
             if (this._x >= canvas.width){
                 this._chragePhase = 2
                 this._x = 100
@@ -1210,7 +1215,7 @@ class BossDragon extends Dragon{
             }
         }
         if (this._chragePhase == 2){
-            this._ySpeed = -8
+            this._ySpeed = -8 * 60
             this._xSpeed = 0
             if (this._y <= -this._height){
                 this._chragePhase = 3
@@ -1228,7 +1233,7 @@ class BossDragon extends Dragon{
             }
         }
         if (this._chragePhase == 3){
-            this._ySpeed = 8
+            this._ySpeed = 8 * 60
             this._xSpeed = 0
             if (this._y >= canvas.height){
                 this._chragePhase = 4
@@ -1246,7 +1251,7 @@ class BossDragon extends Dragon{
             }
         }
         if (this._chragePhase == 4){
-            this._ySpeed = -8
+            this._ySpeed = -8 * 60
             this._xSpeed = 0
             if (this._y <= -this._height){
                 this._charging = false
@@ -1254,7 +1259,7 @@ class BossDragon extends Dragon{
                 this._x = -this.width
                 this._y = 100
                 this._ySpeed = 0
-                this._xSpeed = 3
+                this._xSpeed = 3 * 60
                 this._img = bossDragonImages
                 this._width/=1.3
                 this._height/=1.3
@@ -1325,12 +1330,13 @@ class Bamboo extends HitboxObject{
     }
     move(){
         super.move()
-        this._y += this._ySpeed
-        this._hitboxY += this._ySpeed
+        this._y += this._ySpeed * secondsPassed
+        this._hitboxY += this._ySpeed * secondsPassed
     }
     handleCollisions(i){
         for (var j = 0; j < objects.length; j++){
             if (Object.getPrototypeOf(objects[j].constructor).name == "Dragon"){
+                console.log("rect i = " + i)
                 if (detectRectCollision(objects[i], objects[j])){
                     if (!(objects[j].constructor.name == "BossDragon" && objects[j].x < 50)){
                         objects[j].health--
@@ -1355,6 +1361,7 @@ class Bamboo extends HitboxObject{
                 }
             }
             if (objects[j].constructor.name == "FireBall"){
+                console.log("circle i = " + i)
                 if (detectCircleRectCollision(objects[j], objects[i])){
                     objects.splice(j, 1)
                     if (i > j){
@@ -1369,7 +1376,8 @@ class Bamboo extends HitboxObject{
         return 0
     }
     loopRoutine(i){
-        super.loopRoutine(i)
+        if (super.loopRoutine(i) == 1)
+            return 1
         return this.handleCollisions(i)
     }
     get ySpeed() {
@@ -1404,7 +1412,7 @@ class FireBall extends WorldObject{
     }
     move(){
         super.move()
-        this.y += this.ySpeed
+        this.y += this.ySpeed * secondsPassed
         this.cx = this.x
         this.cy = this.y
     }
@@ -1480,17 +1488,17 @@ class Panda extends HitboxObject {
     }
     move(){
         super.move()
-        if (walkingDown && this.y < tileSize * 10){
-            this.y += this.ySpeed
-            this.hitboxY += this.ySpeed
+        if (walkingDown && this._y < tileSize * 10){
+            this._y += this._ySpeed * secondsPassed
+            this._hitboxY += this._ySpeed * secondsPassed
         }
-        if (walkingUp && this.y > tileSize * 3){
-            this.y -= this.ySpeed
-            this.hitboxY -= this.ySpeed
+        if (walkingUp && this._y > tileSize * 3){
+            this._y -= this._ySpeed * secondsPassed
+            this._hitboxY -= this._ySpeed * secondsPassed
         }
     }
     death(){
-        clearInterval(gameInterval)
+        this._state = "dead"
         if (score >= highscore){
             highscore = score
             localStorage.setItem("Highscore", highscore);
@@ -1503,9 +1511,9 @@ class Panda extends HitboxObject {
     }
     drawSelf(){
         if (this._xSpeed == tileSpeed)
-            ctx.drawImage(this._img[0], this._x, this._y, this._width, this._height)
+            ctx.drawImage(this._img[0], Math.floor(this._x), this._y, this._width, this._height)
         else
-            ctx.drawImage(this._img[Math.floor(count / (9/mult)) % 8], this._x, this._y, this._width, this._height)
+            ctx.drawImage(this._img[Math.floor(Math.floor(count) / 4.5) % 8], Math.floor(this._x), this._y, this._width, this._height)
     }
     handleCollisions(i){
         for (var j = 0; j < objects.length; j++){
@@ -1575,7 +1583,7 @@ class Flame extends HitboxObject{
         this._hitboxHeight = this._height / 6
     }
     drawSelf(){
-        ctx.drawImage(this._img[Math.floor(count / (9/mult)) % 8], this._x, this._y, this._width, this._height)
+        ctx.drawImage(this._img[Math.floor(Math.floor(count) / (9/mult)) % 8], Math.floor(this._x), this._y, this._width, this._height)
     }
     updateHitbox(){
         if (this._y + this._height > pando.y + pando._height){
