@@ -246,13 +246,24 @@ var henchman2
 var totalSecondsPassed = 0
 var lastAnimationFrame
 
+canvas = document.getElementById("aids")
+
+var backBuffer = document.createElement('canvas');
+backBuffer.width = canvas.width;
+backBuffer.height = canvas.height;
+ctx = backBuffer.getContext('2d');
+var context = canvas.getContext('2d')
+
+
 
 function startGame() {
     //Init canvas
     canvas = document.getElementById("aids")
-    ctx = canvas.getContext("2d");
+    ctx = backBuffer.getContext('2d');
+    context = canvas.getContext('2d')
     ctx.imageSmoothingEnabled = false;
-    
+    context.imageSmoothingEnabled = false;
+
     //Reset the grass array
     for(var i = 0; i < tilesArrayHeight; i++){
         grassArray[i] = []
@@ -306,6 +317,7 @@ function startGame() {
     objects.push(pando)
     newTime = new Date()
     //gameInterval = setInterval(runLoop, mult * 8);
+    context.drawImage(backBuffer, 0, 0);
     lastAnimationFrame =  window.requestAnimationFrame(runLoop);
 }
 
@@ -643,6 +655,7 @@ function runLoop(timeStamp) {
         }*/
     }
     tileOffset %= tileSize
+    context.drawImage(backBuffer, 0, 0);
     if(pando.state != "dead" && !paused)
         lastAnimationFrame = window.requestAnimationFrame(runLoop);
 }
@@ -878,7 +891,6 @@ class WorldObject{
         this._x += this._xSpeed * secondsPassed
     }
     drawSelf(){
-        console.log(this)
         ctx.drawImage(this._img, Math.floor(this._x), this._y, this._width, this._height)
     }
     loopRoutine(i){
@@ -1016,7 +1028,7 @@ class Dragon extends HitboxObject{
     loopRoutine(i){
         super.loopRoutine(i)
         var randy = Math.random()
-        if (randy < 0.004){
+        if (randy < 0.004 * 60 * secondsPassed){
             this.shootFireBall()
         }
     }
@@ -1254,7 +1266,7 @@ class BossDragon extends Dragon{
         if (this._charging)
             this.chargeAttack()
         var randy = Math.random()
-        if (randy < 0.008 && this._x >= 50 && !this._charging){
+        if (randy < 0.008 * 60 * secondsPassed && this._x >= 50 && !this._charging){
             this.shootFireBall()
         }
         this.drawSelf()
