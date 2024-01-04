@@ -224,6 +224,8 @@ var dayTime = true
 var currentGroundTile = green
 var groundTiles = [green, snow, snow1, snow2]
 var groundObjects = [grass, mushroom1, mushroom2, rock1, rock2, snowMushroom1, snowMushroom2, snowRock1, snowRock2]
+var grassGroundObjects = [grass, mushroom1, mushroom2, rock1, rock2]
+var weightedGrassGroundObjects = [grass, grass, grass, grass, grass, grass, mushroom1, mushroom2, rock1, rock2]
 var paused = false
 var pandaInitialX = 64
 var highscore
@@ -241,6 +243,9 @@ var henchman
 var henchman1
 var henchman2
 
+var totalSecondsPassed = 0
+var lastAnimationFrame
+
 
 function startGame() {
     //Init canvas
@@ -255,25 +260,7 @@ function startGame() {
     //Generate first terrain
     for(var i = 4; i < tilesArrayHeight; i++){
         for(var j = 0; j < tilesArrayWidth + 2; j++){
-            var temp = Math.random()
-            if (temp < 0.07){
-                grassArray[i][j] = grass;
-            }
-            else if (temp < 0.08){
-                grassArray[i][j] = mushroom1;
-            }
-            else if (temp < 0.09){
-                grassArray[i][j] = mushroom2;
-            }
-            else if (temp < 0.1){
-                grassArray[i][j] = rock1;
-            }
-            else if (temp < 0.11){
-                grassArray[i][j] = rock2;
-            }
-            else{
-                grassArray[i][j] = green;
-            }
+            grassArray[i][j] = green;
         }
     }
 
@@ -319,7 +306,7 @@ function startGame() {
     objects.push(pando)
     newTime = new Date()
     //gameInterval = setInterval(runLoop, mult * 8);
-    window.requestAnimationFrame(runLoop);
+    lastAnimationFrame =  window.requestAnimationFrame(runLoop);
 }
 
 
@@ -439,7 +426,9 @@ function runLoop(timeStamp) {
 
     // Move forward in time with a maximum amount
     secondsPassed = Math.min(secondsPassed, 0.1);
-    //console.log(secondsPassed)
+
+    totalSecondsPassed += secondsPassed
+    //console.log(totalSecondsPassed)
 
     // Calculate fps
     fps = Math.round(1 / secondsPassed);
@@ -524,7 +513,7 @@ function runLoop(timeStamp) {
     }
 
     if(-tileOffset >= tileSize){
-        for(var i = 4; i < tilesArrayHeight; i++){
+        /*for(var i = 4; i < tilesArrayHeight; i++){
             for(var j = -1; j < tilesArrayWidth + 1; j++){
                 if(!groundTiles.includes(grassArray[i][j + 1])){
                     grassArray[i][j] = grassArray[i][j + 1]
@@ -533,52 +522,6 @@ function runLoop(timeStamp) {
                 else{
                     grassArray[i][j] = grassArray[i][j + 1]
                     grassArray[i][j + 1] = currentGroundTile
-                }
-            }
-        }
-        for (var i = 4; i < tilesArrayHeight - 2; i++){
-            var temp = Math.random()
-            if (world == 'grass'){
-                if (temp < 0.07){
-                    grassArray[i][tilesArrayWidth + 1] = grass;
-                }
-                else if (temp < 0.08){
-                    grassArray[i][tilesArrayWidth + 1] = mushroom1;
-                }
-                else if (temp < 0.09){
-                    grassArray[i][tilesArrayWidth + 1] = mushroom2;
-                }
-                else if (temp < 0.1){
-                    grassArray[i][tilesArrayWidth + 1] = rock1;
-                }
-                else if (temp < 0.11){
-                    grassArray[i][tilesArrayWidth + 1] = rock2;
-                }
-                else{
-                    grassArray[i][tilesArrayWidth + 1] = currentGroundTile;
-                }
-            }
-            else if (world == 'snow'){
-                if (temp < 0.01){
-                    grassArray[i][tilesArrayWidth + 1] = snowMushroom1;
-                }
-                else if (temp < 0.02){
-                    grassArray[i][tilesArrayWidth + 1] = snowMushroom2;
-                }
-                else if (temp < 0.03){
-                    grassArray[i][tilesArrayWidth + 1] = snowRock1;
-                }
-                else if (temp < 0.04){
-                    grassArray[i][tilesArrayWidth + 1] = snowRock2;
-                }
-                else if (temp < 0.10){
-                    grassArray[i][tilesArrayWidth + 1] = snow1;
-                }
-                else if (temp < 0.16){
-                    grassArray[i][tilesArrayWidth + 1] = snow2;
-                }
-                else{
-                    grassArray[i][tilesArrayWidth + 1] = snow;
                 }
             }
         }
@@ -593,7 +536,7 @@ function runLoop(timeStamp) {
             grassArray[tilesArrayHeight - 2][tilesArrayWidth + 1] = cliff;
             grassArray[tilesArrayHeight - 1][tilesArrayWidth + 1] = cliff1;
             grassArray[4][tilesArrayWidth + 1] = topSnow;
-        }
+        }*/
 
         //Spawn Bamboo Trees and Dragons
         var randy = Math.random()
@@ -609,8 +552,17 @@ function runLoop(timeStamp) {
             if (world == 'snow')
                 objects.push(new BambooTree(canvas.width, Math.floor(Math.random() * (340 + 90 + 1)) - 90, bambooTreeSpeed, snowBambooTreeImg, bambooTreeWidth, bambooTreeHeight, true))
         }
+        var amount = randomIntFromInterval(0, 1)
+        for (i = 0; i <= amount; i++){
+            objects.push(new WorldObject(canvas.width, randomIntFromInterval((4) * tileSize, (tilesArrayHeight - 4) * tileSize), tileSpeed, tileSize, tileSize, weightedGrassGroundObjects[randomIntFromInterval(0, weightedGrassGroundObjects.length - 1)]))
+        }
     }
-    var later = []
+    for(var i = 4; i < tilesArrayHeight; i++){
+        for(var j = 0; j < tilesArrayWidth + 1; j++){
+            ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize)
+        }
+    }
+    /*var later = []
     for(var i = 4; i < tilesArrayHeight; i++){
         for(var j = 0; j < tilesArrayWidth + 1; j++){
             if (groundObjects.includes(grassArray[i][j])){
@@ -626,7 +578,7 @@ function runLoop(timeStamp) {
                 ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize)
             }
         }
-    }
+    }*/
 
     objects.sort((a,b) => (a.y + a.height) - (b.y + b.height))
     for(var i = 0; i < objects.length; i++){
@@ -645,11 +597,12 @@ function runLoop(timeStamp) {
         ctx.stroke()*/
     
     }
-    later.forEach(([i, j])=> ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize))
+    //later.forEach(([i, j])=> ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize + tileOffset % tileSize), i * tileSize, tileSize, tileSize))
 
     if (Math.floor(count) % 30 == 0){
         score++
     }
+    //console.log("count = " + count + " | score = " + score)
     if (score > highscore){
         highscore = score
     }
@@ -658,7 +611,7 @@ function runLoop(timeStamp) {
     //ctx.fillText("SCORE: " + score, 60, 150);
     drawStroked(ctx, "SCORE: " + score, 60, 120, '34pt minecraft')
     drawStroked(ctx, "HIGHSCORE: " + highscore, 60, 170, '34pt minecraft')
-    drawStroked(ctx, "FPS: " + Math.round(1 / secondsPassed), 60, 220, '34pt minecraft')
+    drawStroked(ctx, "FPS: " + fps, 60, 220, '34pt minecraft')
     if (pando.state == "cutting")
         drawBambooProgress(ctx)
 
@@ -690,8 +643,8 @@ function runLoop(timeStamp) {
         }*/
     }
     tileOffset %= tileSize
-    if(pando.state != "dead")
-        window.requestAnimationFrame(runLoop);
+    if(pando.state != "dead" && !paused)
+        lastAnimationFrame = window.requestAnimationFrame(runLoop);
 }
 
 function drawStroked(context, text, x, y, font) {
@@ -737,6 +690,10 @@ function detectCircleRectCollision(circle, rect){
     return (dx*dx+dy*dy<=(circle.r*circle.r));
 }
 
+function randomIntFromInterval(min, max) { // min and max included 
+    return Math.floor(Math.random() * (max - min + 1) + min)
+  }
+
 /*function shootFireBall(drago){
     if (drago.dragonType == "red"){
         angle = Math.atan2((pando.y + pando.height / 2 - drago.y - drago.height / 2), (pando.x + pando.width / 2 - drago.x))
@@ -772,11 +729,10 @@ function drawAmmo(){
 function pauseGame(){
     if (paused){
         document.getElementById("pauseMenu").remove()
-        gameInterval = setInterval(runLoop, mult * 8);
         paused = false
+        lastAnimationFrame =  requestAnimationFrame(runLoop)
     }
     else{
-        clearInterval(gameInterval)
         paused = true
         createPauseMenu()
     }
@@ -794,12 +750,16 @@ function createPauseMenu(){
 }
 
 function restartGame(){
-    clearInterval(gameInterval)
+    cancelAnimationFrame(lastAnimationFrame)
     objects = []
     score = 0
     count = 0
     world = 'grass'
     currentGroundTile = green
+    tileOffset = 0
+    totalSecondsPassed = 0
+    inBossBattle = false
+    bossKilled = false
     startGame()
 
 }
@@ -918,12 +878,12 @@ class WorldObject{
         this._x += this._xSpeed * secondsPassed
     }
     drawSelf(){
+        console.log(this)
         ctx.drawImage(this._img, Math.floor(this._x), this._y, this._width, this._height)
     }
     loopRoutine(i){
         if(this._x > canvas.width || this._x < -this._width || this._y < -this.height || this._y > canvas.height){
             objects.splice(i, 1)
-            console.log("aids! i = " + i)
             return 1
         }
         this.move()
@@ -1336,7 +1296,6 @@ class Bamboo extends HitboxObject{
     handleCollisions(i){
         for (var j = 0; j < objects.length; j++){
             if (Object.getPrototypeOf(objects[j].constructor).name == "Dragon"){
-                console.log("rect i = " + i)
                 if (detectRectCollision(objects[i], objects[j])){
                     if (!(objects[j].constructor.name == "BossDragon" && objects[j].x < 50)){
                         objects[j].health--
@@ -1361,7 +1320,6 @@ class Bamboo extends HitboxObject{
                 }
             }
             if (objects[j].constructor.name == "FireBall"){
-                console.log("circle i = " + i)
                 if (detectCircleRectCollision(objects[j], objects[i])){
                     objects.splice(j, 1)
                     if (i > j){
