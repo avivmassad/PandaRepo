@@ -226,6 +226,7 @@ var groundTiles = [green, snow, snow1, snow2]
 var groundObjects = [grass, mushroom1, mushroom2, rock1, rock2, snowMushroom1, snowMushroom2, snowRock1, snowRock2]
 var grassGroundObjects = [grass, mushroom1, mushroom2, rock1, rock2]
 var weightedGrassGroundObjects = [grass, grass, grass, grass, grass, grass, mushroom1, mushroom2, rock1, rock2]
+var weightedSnowGroundObjects = [snowMushroom1, snowMushroom2, snowRock1, snowRock2]
 var paused = false
 var pandaInitialX = 64
 var highscore
@@ -295,6 +296,13 @@ function startGame() {
                 
             }
             else if (i < tilesArrayHeight - 3){
+                var amount = randomIntFromInterval(0, 5)
+                if (!amount){
+                    if (world == 'grass')
+                        objects.push(new WorldObject(j * tileSize, i * tileSize, tileSpeed, tileSize, tileSize, weightedGrassGroundObjects[randomIntFromInterval(0, weightedGrassGroundObjects.length - 1)]))
+                    if (world == 'snow')
+                        objects.push(new WorldObject(j * tileSize, i * tileSize, tileSpeed, tileSize, tileSize, weightedSnowGroundObjects[randomIntFromInterval(0, weightedSnowGroundObjects.length - 1)]))
+                }
                 ctx.drawImage(grassArray[i][j], Math.floor(j * tileSize), i * tileSize, tileSize, tileSize)
             }
         }
@@ -341,28 +349,28 @@ function getClosestBamboo(){
 
 document.onkeydown = 
     function(e){
-        switch(e.keyCode){
-            case 65://a
+        switch(e.key){
+            case "a":
                 walkingLeft = true
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case 68://d
+            case "d":
                 walkingRight = true
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case 87://w
+            case "w":
                 walkingUp = true;
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case 83://s
+            case "s":
                 walkingDown = true;
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case 69://e
+            case "e":
                 if (pando.state == "walking")
                     dis = getClosestBamboo()
                 if (dis <= cuttingDistance && closestBamboo.state){
@@ -379,51 +387,51 @@ document.onkeydown =
                     objects.push(new Bamboo(pando.x, pando.y + 40, bambooSpeed, bambooSpeed, bambooImg, bambooWidth, bambooHeight))
                 }
                 break;*/
-            case 37://left arrow
+            case "ArrowLeft"://left arrow
                 leftArrow = true
                 break;
-            case 38://up arrow
+            case "ArrowUp"://up arrow
                 upArrow = true
                 break;
-            case 39://right arrow
+            case "ArrowRight"://right arrow
                 rightArrow = true
                 break;
-            case 40://down arrow
+            case "ArrowDown"://down arrow
                 downArrow = true
                 break;
-            case 27://esc
+            case "Escape"://esc
                 pauseGame()
                 break;
-            case 82:
+            case "r":
                 restartGame()
                 break;
     }
   }
 document.onkeyup = 
     function(e){
-        switch(e.keyCode){
-            case 65:
+        switch(e.key){
+            case "a":
                 walkingLeft = false
                 break;
-            case 68:
+            case "d":
                 walkingRight = false
                 break;
-            case 87:
+            case "w":
                 walkingUp = false;
                 break;
-            case 83:
+            case "s":
                 walkingDown = false;
                 break;
-            case 37://left arrow
+            case "ArrowLeft"://left arrow
                 leftArrow = false
                 break;
-            case 38://up arrow
+            case "ArrowUp"://up arrow
                 upArrow = false
                 break;
-            case 39://right arrow
+            case "ArrowRight"://right arrow
                 rightArrow = false
                 break;
-            case 40://down arrow
+            case "ArrowDown"://down arrow
                 downArrow = false
                 break;
     }
@@ -455,8 +463,9 @@ function runLoop(timeStamp) {
     if (bossKilled){
         world = 'snow'
         currentGroundTile = snow
+        updateGrassArray()
     }
-    if (Math.floor(count) > 7000 && !inBossBattle && !bossKilled){
+    if (Math.floor(count) > 100 && !inBossBattle && !bossKilled){
         bossObject = new BossDragon(-bossDragonWidth, 100, 180, bossDragonHealth, bossDragonImages, bossDragonWidth,
             bossDragonHeight, -bossDragonWidth, 100, bossDragonWidth, bossDragonHeight)
         objects.push(bossObject)
@@ -564,10 +573,13 @@ function runLoop(timeStamp) {
             if (world == 'snow')
                 objects.push(new BambooTree(canvas.width, Math.floor(Math.random() * (340 + 90 + 1)) - 90, bambooTreeSpeed, snowBambooTreeImg, bambooTreeWidth, bambooTreeHeight, true))
         }
-        var amount = randomIntFromInterval(0, 1)
-        for (i = 0; i <= amount; i++){
+        var amount = randomIntFromInterval(0, 2)
+        if (!amount){
             objects.push(new WorldObject(canvas.width, randomIntFromInterval((4) * tileSize, (tilesArrayHeight - 4) * tileSize), tileSpeed, tileSize, tileSize, weightedGrassGroundObjects[randomIntFromInterval(0, weightedGrassGroundObjects.length - 1)]))
         }
+        /*for (i = 0; i <= amount; i++){
+            objects.push(new WorldObject(canvas.width, randomIntFromInterval((4) * tileSize, (tilesArrayHeight - 4) * tileSize), tileSpeed, tileSize, tileSize, weightedGrassGroundObjects[randomIntFromInterval(0, weightedGrassGroundObjects.length - 1)]))
+        }*/
     }
     for(var i = 4; i < tilesArrayHeight; i++){
         for(var j = 0; j < tilesArrayWidth + 1; j++){
@@ -658,6 +670,34 @@ function runLoop(timeStamp) {
     context.drawImage(backBuffer, 0, 0);
     if(pando.state != "dead" && !paused)
         lastAnimationFrame = window.requestAnimationFrame(runLoop);
+}
+
+
+function updateGrassArray(){
+    for(var i = 4; i < tilesArrayHeight; i++){
+        for(var j = -1; j < tilesArrayWidth + 1; j++){
+            if(!groundTiles.includes(grassArray[i][j + 1])){
+                grassArray[i][j] = grassArray[i][j + 1]
+                grassArray[i][j + 1] = currentGroundTile
+            }
+            else{
+                grassArray[i][j] = grassArray[i][j + 1]
+                grassArray[i][j + 1] = currentGroundTile
+            }
+        }
+    }
+    if (world == 'grass'){
+        grassArray[tilesArrayHeight - 3][tilesArrayWidth + 1] = grassCliff;
+        grassArray[tilesArrayHeight - 2][tilesArrayWidth + 1] = cliff;
+        grassArray[tilesArrayHeight - 1][tilesArrayWidth + 1] = cliff1;
+        grassArray[4][tilesArrayWidth + 1] = topGrass;
+    }
+    if (world == 'snow'){
+        grassArray[tilesArrayHeight - 3][tilesArrayWidth + 1] = snowCliff;
+        grassArray[tilesArrayHeight - 2][tilesArrayWidth + 1] = cliff;
+        grassArray[tilesArrayHeight - 1][tilesArrayWidth + 1] = cliff1;
+        grassArray[4][tilesArrayWidth + 1] = topSnow;
+    }
 }
 
 function drawStroked(context, text, x, y, font) {
@@ -773,6 +813,10 @@ function restartGame(){
     totalSecondsPassed = 0
     inBossBattle = false
     bossKilled = false
+    if (paused){
+        document.getElementById("pauseMenu").remove()
+        paused = false
+    }
     startGame()
 
 }
@@ -1028,7 +1072,7 @@ class Dragon extends HitboxObject{
     loopRoutine(i){
         super.loopRoutine(i)
         var randy = Math.random()
-        if (randy < 0.004 * 60 * secondsPassed){
+        if (randy < 0.006 * 60 * secondsPassed){
             this.shootFireBall()
         }
     }
