@@ -234,7 +234,7 @@ var inBossBattle = false
 var bossKilled = false
 var redDragonHealth = 3
 var blueDragonHealth = 4
-var bossDragonHealth = 4
+var bossDragonHealth = 40
 var bossDragonSizeRatio = 4.5
 var bossDragonWidth = dragonWidth * bossDragonSizeRatio
 var bossDragonHeight = dragonHeight * bossDragonSizeRatio
@@ -465,7 +465,7 @@ function runLoop(timeStamp) {
         currentGroundTile = snow
         updateGrassArray()
     }
-    if (Math.floor(count) > 100 && !inBossBattle && !bossKilled){
+    if (Math.floor(count) > 7000 && !inBossBattle && !bossKilled){
         bossObject = new BossDragon(-bossDragonWidth, 100, 180, bossDragonHealth, bossDragonImages, bossDragonWidth,
             bossDragonHeight, -bossDragonWidth, 100, bossDragonWidth, bossDragonHeight)
         objects.push(bossObject)
