@@ -255,6 +255,11 @@ backBuffer.height = canvas.height;
 ctx = backBuffer.getContext('2d');
 var context = canvas.getContext('2d')
 
+var nightCanvas = document.createElement('canvas');
+nightCanvas.width = canvas.width;
+nightCanvas.height = canvas.height;
+var nightContext = nightCanvas.getContext('2d')
+
 
 
 function startGame() {
@@ -349,28 +354,28 @@ function getClosestBamboo(){
 
 document.onkeydown = 
     function(e){
-        switch(e.key){
-            case "a":
+        switch(e.keyCode){
+            case 65://a
                 walkingLeft = true
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case "d":
+            case 68://d
                 walkingRight = true
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case "w":
+            case 87://w
                 walkingUp = true;
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case "s":
+            case 83://s
                 walkingDown = true;
                 pando.state = "walking"
                 bambooCuttingCount = 0
                 break;
-            case "e":
+            case 69://e
                 if (pando.state == "walking")
                     dis = getClosestBamboo()
                 if (dis <= cuttingDistance && closestBamboo.state){
@@ -387,51 +392,51 @@ document.onkeydown =
                     objects.push(new Bamboo(pando.x, pando.y + 40, bambooSpeed, bambooSpeed, bambooImg, bambooWidth, bambooHeight))
                 }
                 break;*/
-            case "ArrowLeft"://left arrow
+            case 37://left arrow
                 leftArrow = true
                 break;
-            case "ArrowUp"://up arrow
+            case 38://up arrow
                 upArrow = true
                 break;
-            case "ArrowRight"://right arrow
+            case 39://right arrow
                 rightArrow = true
                 break;
-            case "ArrowDown"://down arrow
+            case 40://down arrow
                 downArrow = true
                 break;
-            case "Escape"://esc
+            case 27://esc
                 pauseGame()
                 break;
-            case "r":
+            case 82:
                 restartGame()
                 break;
     }
   }
 document.onkeyup = 
     function(e){
-        switch(e.key){
-            case "a":
+        switch(e.keyCode){
+            case 65://a
                 walkingLeft = false
                 break;
-            case "d":
+            case 68://d
                 walkingRight = false
                 break;
-            case "w":
+            case 87://w
                 walkingUp = false;
                 break;
-            case "s":
+            case 83://s
                 walkingDown = false;
                 break;
-            case "ArrowLeft"://left arrow
+            case 37://left arrow
                 leftArrow = false
                 break;
-            case "ArrowUp"://up arrow
+            case 38://up arrow
                 upArrow = false
                 break;
-            case "ArrowRight"://right arrow
+            case 39://right arrow
                 rightArrow = false
                 break;
-            case "ArrowDown"://down arrow
+            case 40://down arrow
                 downArrow = false
                 break;
     }
@@ -481,6 +486,7 @@ function runLoop(timeStamp) {
     backgroundOffset-=backgroundSpeed * secondsPassed
     backgroundOffset %= canvas.width
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    context.clearRect(0, 0, canvas.width, canvas.height);
     if (dayTime){
         ctx.drawImage(backgroundImg, Math.floor(backgroundOffset),0);
         ctx.drawImage(backgroundImg, Math.floor(backgroundOffset + canvas.width), 0);
@@ -653,21 +659,30 @@ function runLoop(timeStamp) {
     }
 
     if(!dayTime){
-        ctx.fillStyle = "#00000066"
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        /*for(var i = 0; i < objects.length; i++){
+        context.globalCompositeOperation = 'source-over'
+        context.fillStyle = "#00000066"
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+
+        context.globalCompositeOperation = 'destination-out'
+        for(var i = 0; i < objects.length; i++){
             if (objects[i].constructor.name == 'FireBall'){
-                ctx.save();
+                context.arc(objects[i].cx, objects[i].cy, objects[i].r * 2, 0, Math.PI*2, true);
+                context.fill();
+                /*ctx.save();
                 ctx.translate(objects[i].x, objects[i].y);
                 ctx.rotate(objects[i].angle);
                 //ctx.translate(-(objects[i].x + objects[i].width / 2),-(objects[i].y + objects[i].height / 2));
                 ctx.drawImage(objects[i].img, -(objects[i].width / 2), -(objects[i].height / 2), objects[i].width, objects[i].height);
-                ctx.restore();
+                ctx.restore();*/
             }
-        }*/
+        }
+        context.globalCompositeOperation = 'destination-over'
     }
     tileOffset %= tileSize
     context.drawImage(backBuffer, 0, 0);
+    if(!dayTime)
+        context.globalCompositeOperation = 'source-over'
     if(pando.state != "dead" && !paused)
         lastAnimationFrame = window.requestAnimationFrame(runLoop);
 }
@@ -1066,6 +1081,10 @@ class Dragon extends HitboxObject{
         //ctx.drawImage(bossDragonHeadImg, canvas.width / 2 - 800 / 2 - (35 * 1.5) / 2, canvas.height - 80 - (45 * 1.5) / 5, 35 * 1.5, 45 * 1.5)
     }
     drawSelf(){
+        ctx.fillStyle = "#00000066";
+        ctx.beginPath();
+        ctx.ellipse(Math.floor(this._x) + 60, this._y + 120, 50, 23, 0, 0, 2 * Math.PI);
+        ctx.fill();
         ctx.drawImage(this._img[Math.floor(Math.floor(count) / ((27 - Math.abs(this._xSpeed) / 60) / mult)) % 3], Math.floor(this._x), this._y, this._width, this._height)
         this.drawHealthBar()
     }
